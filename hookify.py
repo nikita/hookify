@@ -1,72 +1,22 @@
 #!/usr/bin/env python
 
-import os
-import re
 import sys
-
-# Should remove
-KNOWN_TYPES = [
-    'id', 'NSObject', 'void', 'char', 'int', 'unsigned', 'double', 'float', 'long', 'bool', 'BOOL', '_Bool',
-    'NSAffineTransform', 'NSAppleEventDescriptor', 'NSAppleEventManager', 'NSAppleScript',
-    'NSArchiver', 'NSArray', 'NSAssertionHandler', 'NSAttributedString', 'NSAutoreleasePool',
-    'NSBlockOperation', 'NSBundle', 'NSCache', 'NSCachedURLResponse', 'NSCalendar', 'NSCharacterSet',
-    'NSClassDescription', 'NSCloneCommand', 'NSCloseCommand', 'NSCoder', 'NSComparisonPredicate',
-    'NSCompoundPredicate', 'NSCondition', 'NSConditionLock', 'NSConnection', 'NSCountCommand',
-    'NSCountedSet', 'NSCreateCommand', 'NSData', 'NSDataDetector', 'NSDate', 'NSDateComponents',
-    'NSDateFormatter', 'NSDecimalNumber', 'NSDecimalNumberHandler', 'NSDeleteCommand', 'NSDictionary',
-    'NSDirectoryEnumerator', 'NSDistantObject', 'NSDistantObjectRequest', 'NSDistributedLock',
-    'NSDistributedNotificationCenter', 'NSEnumerator', 'NSError', 'NSException', 'NSExistsCommand',
-    'NSExpression', 'NSFileCoordinator', 'NSFileHandle', 'NSFileManager', 'NSFileVersion', 'NSFileWrapper',
-    'NSFormatter', 'NSGarbageCollector', 'NSGetCommand', 'NSHashTable', 'NSHost', 'NSHTTPCookie',
-    'NSHTTPCookieStorage', 'NSHTTPURLResponse', 'NSIndexPath', 'NSIndexSet', 'NSIndexSpecifier', 'NSInputStream',
-    'NSInvocation', 'NSInvocationOperation', 'NSKeyedArchiver', 'NSKeyedUnarchiver', 'NSLinguisticTagger',
-    'NSLocale', 'NSLock', 'NSLogicalTest', 'NSMachBootstrapServer', 'NSMachPort', 'NSMapTable', 'NSMessagePort',
-    'NSMessagePortNameServer', 'NSMetadataItem', 'NSMetadataQuery', 'NSMetadataQueryAttributeValueTuple',
-    'NSMetadataQueryResultGroup', 'NSMethodSignature', 'NSMiddleSpecifier', 'NSMoveCommand', 'NSMutableArray',
-    'NSMutableAttributedString', 'NSMutableCharacterSet', 'NSMutableData', 'NSMutableDictionary',
-    'NSMutableIndexSet', 'NSMutableOrderedSet', 'NSMutableSet', 'NSMutableString', 'NSMutableURLRequest',
-    'NSNameSpecifier', 'NSNetService', 'NSNetServiceBrowser', 'NSNotification', 'NSNotificationCenter',
-    'NSNotificationQueue', 'NSNull', 'NSNumber', 'NSNumberFormatter', 'NSObject', 'NSOperation', 'NSOperationQueue',
-    'NSOrderedSet', 'NSOrthography', 'NSOutputStream', 'NSPipe', 'NSPointerArray', 'NSPointerFunctions', 'NSPort',
-    'NSPortCoder', 'NSPortMessage', 'NSPortNameServer', 'NSPositionalSpecifier', 'NSPredicate', 'NSProcessInfo',
-    'NSPropertyListSerialization', 'NSPropertySpecifier', 'NSProtocolChecker', 'NSProxy', 'NSQuitCommand',
-    'NSRandomSpecifier', 'NSRangeSpecifier', 'NSRecursiveLock', 'NSRegularExpression', 'NSRelativeSpecifier',
-    'NSRunLoop', 'NSScanner', 'NSScriptClassDescription', 'NSScriptCoercionHandler', 'NSScriptCommand',
-    'NSScriptCommandDescription', 'NSScriptExecutionContext', 'NSScriptObjectSpecifier', 'NSScriptSuiteRegistry',
-    'NSScriptWhoseTest', 'NSSet', 'NSSetCommand', 'NSSocketPort', 'NSSocketPortNameServer', 'NSSortDescriptor',
-    'NSSpecifierTest', 'NSSpellServer', 'NSStream', 'NSString', 'NSTask', 'NSTextCheckingResult', 'NSThread',
-    'NSTimer', 'NSTimeZone', 'NSUbiquitousKeyValueStore', 'NSUnarchiver', 'NSUndoManager', 'NSUniqueIDSpecifier',
-    'NSURL', 'NSURLAuthenticationChallenge', 'NSURLCache', 'NSURLConnection', 'NSURLCredential', 'NSURLCredentialStorage',
-    'NSURLDownload', 'NSURLHandle', 'NSURLProtectionSpace', 'NSURLProtocol', 'NSURLRequest', 'NSURLResponse',
-    'NSUserAppleScriptTask', 'NSUserAutomatorTask', 'NSUserDefaults', 'NSUserNotification', 'NSUserNotificationCenter',
-    'NSUserScriptTask', 'NSUserUnixTask', 'NSUUID', 'NSValue', 'NSValueTransformer', 'NSWhoseSpecifier', 'NSXMLDocument',
-    'NSXMLDTD', 'NSXMLDTDNode', 'NSXMLElement', 'NSXMLNode', 'NSXMLParser', 'NSXPCConnection', 'NSXPCInterface',
-    'NSXPCListener', 'NSXPCListenerEndpoint', 'NSCoding', 'NSComparisonMethods', 'NSConnectionDelegate', 'NSCopying',
-    'NSDecimalNumberBehaviors', 'NSErrorRecoveryAttempting', 'NSFastEnumeration', 'NSFileManagerDelegate',
-    'NSFilePresenter', 'NSKeyedArchiverDelegate', 'NSKeyedUnarchiverDelegate', 'NSKeyValueCoding', 'NSKeyValueObserving',
-    'NSLocking', 'NSMachPortDelegate', 'NSMetadataQueryDelegate', 'NSMutableCopying', 'NSNetServiceBrowserDelegate',
-    'NSNetServiceDelegate', 'NSPortDelegate', 'NSScriptingComparisonMethods', 'NSScriptKeyValueCoding',
-    'NSScriptObjectSpecifiers', 'NSSecureCoding', 'NSSpellServerDelegate', 'NSStreamDelegate',
-    'NSURLAuthenticationChallengeSender', 'NSURLConnectionDataDelegate', 'NSURLConnectionDelegate',
-    'NSURLConnectionDelegate', 'NSURLHandleClient', 'NSURLProtocolClient', 'NSUserNotificationCenterDelegate',
-    'NSXMLParserDelegate', 'NSXPCListenerDelegate', 'NSXPCProxyCreating',
-]
 
 UNKNOWN_TYPE = "CDUnknownBlockType"
 
 
-def map_format_specifier(type):
-    if type == "int":
+def map_format_specifier(_type):
+    if _type == "int":
         return "%d"
-    if type in ["BOOL", "_Bool", "bool"]:
+    if _type in ["BOOL", "_Bool", "bool"]:
         return "%u"
-    if type == "long long":
+    if _type == "long long":
         return "%lld"
-    if type == "float":
+    if _type == "float":
         return "%f"
-    if type == "unsigned long long":
+    if _type == "unsigned long long":
         return "%llu"
-    if type == "double":
+    if _type == "double":
         return "%f"
     else:
         return "%@"
@@ -119,7 +69,7 @@ class HeaderParser():
     def get_methods(self):
         methods = []
         for line in self.lines:
-            if "- (" == line[:3] or "+ (" == line[:3]:
+            if line[:3] == "- (" or line[:3] == "+ (":
                 method = ObjcMethod(line, self.interface)
                 methods.append(method)
         return methods
